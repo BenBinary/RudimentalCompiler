@@ -1,4 +1,4 @@
-package troubloeshooting;
+package troubleshooting;
 
 public class CompilerError extends Exception {
     String message;

@@ -1,4 +1,4 @@
-package troubloeshooting;
+package troubleshooting;
 public class Token {
     public enum Type {  POP, LOP, BLOCKSTART,
                         BLOCKEND, BR, BRC, SEM,

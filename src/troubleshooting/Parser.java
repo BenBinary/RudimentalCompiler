@@ -1,9 +1,29 @@
-package troubloeshooting;
+package troubleshooting;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * ### PANIC MODUS ###
+ * Man läuft in die Tiefe bis man ein Terminal gefunden hat.
+ * Falls man kein Terminal gefunden hat, 
+ * wird eine Exception geworfen und man klettert über alle NT im Stack wieder nach oben.
+ * Bis wieder das entsprechende Synchronisierungszeichen gefunden wurde. 
+ * 
+ * Synchronisierungszeichen sind Aufsetzpunkte bei denen der Parser weitermachen kann. 
+ * 
+ * 
+ * Fehler können noch zusätzlich in eine Liste eingetragen werden. 
+ * 
+ * 
+ * ### Fehlerausgabe ###
+ * Nach einer bestimmten Anzahl an Fehlern - meistens 3.
+ * Diese Fehler werden dann im Anschluss ausgegeben.
+ * 
+ * @author benediktkurz
+ *
+ */
 public class Parser {
 	
     Filter filter;
