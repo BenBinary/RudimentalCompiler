@@ -168,6 +168,9 @@ public class Parser {
      * Sammelknoten für die Grammatik 
      * Man arbeitet normalerweise nicht mit weiteren Kindknoten wie etwa für While-Statements
      * 
+     * Gemeinsame Oberklasse für alle Statements. Alle Bearbeitungsschritte für alle Statements.
+     * 
+     * 
      * @param synco
      * @throws IOException
      * @throws ParserError
@@ -175,11 +178,18 @@ public class Parser {
     void stmnt(Set<Token.Type> synco) throws IOException, ParserError {
     	
        Token.Type kind = filter.getToken().kind;
-       if (kind == Token.Type.IF) ifStmnt(synco);
-       else if (kind == Token.Type.WHILE) whileStmnt(synco);
-       else if (kind == Token.Type.BLOCKSTART) block(synco);
-       else if (kind == Token.Type.PRINT) printStmnt(synco);
-       else if (kind == Token.Type.SEM) filter.matchToken();
+       StmntNode res = null;
+       
+       if (kind == Token.Type.IF) res=ifStmnt(synco);
+       else if (kind == Token.Type.WHILE) res=whileStmnt(synco);
+       else if (kind == Token.Type.BLOCKSTART) res=block(synco);
+       else if (kind == Token.Type.PRINT) res=printStmnt(synco);
+       else if (kind == Token.Type.SEM) {
+    	   
+    	   res = new EmptyStmntNode(filter.getToken());
+    	   filter.matchToken();
+    	   
+       }
        else exprStmnt(synco);
        
     }
@@ -202,9 +212,18 @@ public class Parser {
             else throw error;
         }
     }
-    // ifStmnt = "if" "(" expr ")" stmnt [ "else" stmnt ]
-    // sync:                    ^ else, First(stmnt)
-    void ifStmnt(Set<Token.Type> synco) throws IOException, ParserError {
+    
+    /**
+     * 
+     * ifStmnt = "if" "(" expr ")" stmnt [ "else" stmnt ]
+     * sync:                    ^ else, First(stmnt)
+     * 
+     * @param synco
+     * @return
+     * @throws IOException
+     * @throws ParserError
+     */
+    IfNode ifStmnt(Set<Token.Type> synco) throws IOException, ParserError {
     	
     	// Eigene Synchronisierungszeichen - welches vom Originalen Sync die Werte abnimmt
         // Normalerweise ist es mit Flags einfacher
@@ -215,13 +234,18 @@ public class Parser {
         sync.add(Token.Type.PRINT);
         sync.add(Token.Type.BLOCKSTART);
         sync.add(Token.Type.SEM);
+        
+        Node expr = null;
+        StmntNode stmnt = null;
+        Token start = filter.getToken();
+        StmntNode elseStmnt = null;
 
         filter.matchToken(); // must be "if"
         toElse: {
             try {
-                filter.matchToken(Token.Type.BR, sync);
-                expr(sync);
-                filter.matchToken(Token.Type.BRC, sync);
+                filter.matchToken(Token.Type.BR, sync); // Klammer auf 
+                stmnt = expr(sync);
+                filter.matchToken(Token.Type.BRC, sync); // Klammer zu
             } catch (ParserError error) {
                 if (filter.getToken().kind == Token.Type.ELSE) break toElse;
                 else if (filter.getToken().kind == Token.Type.IF || filter.getToken().kind == Token.Type.WHILE
@@ -232,7 +256,7 @@ public class Parser {
             sync = new HashSet<>(synco);
             sync.add(Token.Type.ELSE);
             try {
-                stmnt(sync);
+                stmnt = stmnt(sync);
             } catch (ParserError error) {
             	// Wenn das aktuelle Token ein ELSE ist
                 if (filter.getToken().kind == Token.Type.ELSE) ;
@@ -242,24 +266,39 @@ public class Parser {
     	// Wenn das aktuelle Token ein ELSE ist
         if (filter.getToken().kind == Token.Type.ELSE) {
             filter.matchToken();
-            stmnt(synco);
+            elseStmnt = stmnt(synco);
         }
+        
+        return new IfNode(start, expr, stmnt, elseStmnt);
     }
 
-    // whileStmnt = "while" "(" expr ")" stmnt
-    // sync:                          ^ else, First(stmnt)
-    void whileStmnt(Set<Token.Type> synco) throws IOException, ParserError {
+    
+    /**
+     * 
+     * whileStmnt = "while" "(" expr ")" stmnt
+     * sync:                          ^ else, First(stmnt)
+     * 
+     * @param synco
+     * @return
+     * @throws IOException
+     * @throws ParserError
+     */
+    WhileNode whileStmnt(Set<Token.Type> synco) throws IOException, ParserError {
         Set<Token.Type> sync = new HashSet<>(synco);
         sync.add(Token.Type.IF);
         sync.add(Token.Type.WHILE);
         sync.add(Token.Type.PRINT);
         sync.add(Token.Type.BLOCKSTART);
         sync.add(Token.Type.SEM);
-
+        
+        Node expr = null;
+        StmntNode stmnt = null;
+        Token start = filter.getToken();
         filter.matchToken(); // must be "while"
-        try {
+        
+        try { 
             filter.matchToken(Token.Type.BR,sync);
-            expr(sync);
+            expr = expr(sync);
             filter.matchToken(Token.Type.BRC,sync);
         } catch (ParserError error) {
             if (filter.getToken().kind == Token.Type.IF || filter.getToken().kind == Token.Type.WHILE
@@ -267,22 +306,32 @@ public class Parser {
                     || filter.getToken().kind == Token.Type.BLOCKSTART) ;
             else throw error;
         }
-        stmnt(synco);
+        stmnt = stmnt(synco);
+        
+        return new WhileNode(start, expr, stmnt);
+        
     }
 
     // exprStmnt = expr ";"
     // sync: ";"
-    void exprStmnt(Set<Token.Type> synco) throws IOException, ParserError {
+    ExprNode exprStmnt(Set<Token.Type> synco) throws IOException, ParserError {
         Set<Token.Type> sync = new HashSet<>(synco);
         sync.add(Token.Type.SEM);
+        
+        Token end = null;
+        ExprNode expr = null;
 
         try {
-            expr(sync);
+            expr = expr(sync);
+            end = filter.getToken();
             filter.matchToken(Token.Type.SEM, sync);
         } catch (ParserError error) {
             if (filter.getToken().kind == Token.Type.SEM) ;
             else throw error;
         }
+        
+        
+		return new ExprNode(expr, end);
     }
 
     // emptyStmnt = ";"  -- see above stmnt
@@ -379,6 +428,24 @@ public class Parser {
     
     
     // no syncs ???
+    /**
+     * 
+     * Eine Reihe von Produkten
+     * Teilbaum hat immer zwei aufeinanderfolgende Produkten welche diese zusammenfügt.
+     * Weiteren Knoten daran bastelt. 
+     * 
+     * Man kann bei mehreren Aufrufen viele Knoten daran basteln. 
+     * Eventuell muss man eine ganze Folge abspeichern.
+     * Nachteil: Weitere Phasen in der Codeerzeugung ist schwierig. 
+     * 
+     * Produkt ist nur ein Teilausdruck, daher sollte man nur einen Teilausdruck zurückgeben.
+     * Ohne weitere Operanden, 
+     * Für jeden Operator soll ein weiterer Knoten erstellt werden. 
+     *      * 
+     * @param synco
+     * @throws IOException
+     * @throws ParserError
+     */
     void sum(Set<Token.Type> synco) throws IOException, ParserError {
         prod(synco);
         while (filter.getToken().kind == Token.Type.POP) {

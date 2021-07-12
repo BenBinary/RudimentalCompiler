@@ -35,6 +35,93 @@ public class Node {
 
 /**
  * 
+ * Für jede Klasse ein Ausdrucke (auch für jedes Statment) beschleunigt den Übersetzungsprozess.
+ * 
+ * JavaCC hat keine Hierarchie bei der AST-Erzeugung, diese muss man sich nachträglich bauen.
+ * AntLR ist besser für AST.
+ * Lex und YaCC unterstützen dies gar nicht. 
+ * 
+ * @author benediktkurz
+ *
+ */
+class StmntNode extends Node {
+	
+	public StmntNode(Token start, Token end) {
+		super(start, end);
+	}
+	
+}
+
+/**
+ * 
+ * For all if-Nodes 
+ * 
+ * Is checking if the if-Statement has an else-Clause
+ * 
+ * @author benediktkurz
+ *
+ */
+class IfNode extends StmntNode {
+	
+	Node expr;
+	StmntNode stmntNode;
+	StmntNode elseStmnt;
+
+	public IfNode(Token start, Node expr, StmntNode stmnt, StmntNode elseStmnt) {
+		
+		super(start, elseStmnt!=null ? elseStmnt.end : stmnt.end );
+		
+		this.expr = expr;
+		this.stmntNode = stmnt;
+		this.elseStmnt = elseStmnt;
+		
+		
+	}
+	
+}
+
+/**
+ * 
+ * @author benediktkurz
+ *
+ */
+class WhileNode extends StmntNode {
+	
+	Node expr;
+	StmntNode stmntNode;
+	
+	public WhileNode(Token start, Node expr, StmntNode stmnt) {
+		
+		super(start, stmnt.end);
+		this.expr = expr;
+		this.stmntNode = stmnt;
+		
+	}
+	
+	
+}
+
+class ExprNode extends StmntNode {
+	
+	ExprNode expr;
+	
+	
+	public ExprNode(ExprNode expr, Token end) {
+		
+		super(expr.start, end);
+		this.expr = expr;
+		
+	}
+	
+	
+	
+	
+	
+}
+
+
+/**
+ * 
  * Folge von Deklarationenen und Statements
  * 
  * @author benediktkurz
