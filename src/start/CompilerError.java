@@ -1,3 +1,4 @@
+package start;
 
 public class CompilerError extends Exception {
     String message;
