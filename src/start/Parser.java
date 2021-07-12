@@ -48,16 +48,17 @@ public class Parser {
         sync.add(Token.Type.SEM);
 
         type();
-        try {
+        // try {
             filter.matchToken(Token.Type.IDENTIFIER, sync);
             filter.matchToken(Token.Type.SEM, sync);
+        /*
         } catch (ParserError error) {
             if (filter.getToken().kind == Token.Type.SEM) {
                 filter.matchToken();
                 return;
             }
             else throw error;
-        }
+        } */
     }
     // type = "double" | "int" -- we already know it is int or double !
     void type() throws IOException, ParserError {
@@ -221,22 +222,15 @@ public class Parser {
 
     // expr = IDENTIFIER "=" expr | comp
     // sync:            ^ "="
-    void expr(Set<Token.Type> synco) throws IOException, ParserError {
+    void expr(Set<Token.Type> synco) {
     	
         Set<Token.Type> sync =  new HashSet<>();
         sync.add(Token.Type.SETTO);
 
         if (filter.getToken(1).kind == Token.Type.SETTO) {
-        	
-            try {
-            	
-                filter.matchToken(Token.Type.IDENTIFIER, sync);
-                
-            } catch (ParserError error) {
-                // ignore whatever there is on the left hand side
-            	
-            }
-            
+        		
+            filter.matchToken(Token.Type.IDENTIFIER, sync);
+             
             filter.matchToken();
             
             expr(synco);
@@ -246,16 +240,17 @@ public class Parser {
 
     // comp = sum "<" sum | sum
     // sync:      ^ "<"
-    void comp(Set<Token.Type> synco) throws IOException, ParserError {
+    void com(Set<Token.Type> synco) {
         Set<Token.Type> sync =  new HashSet<>(synco);
         sync.add(Token.Type.COMP);
 
-        try {
-            sum(sync);
+        // try {
+        sum(sync);
+        /*
         } catch (ParserError error) {
             if (filter.getToken().kind == Token.Type.COMP) ;
             else throw error;
-        }
+        } */
         if (filter.getToken().kind == Token.Type.COMP) {
             filter.matchToken();
             sum(synco);
@@ -269,7 +264,7 @@ public class Parser {
     
     
     // no syncs ???
-    void sum(Set<Token.Type> synco) throws IOException, ParserError {
+    void sum(Set<Token.Type> synco) {
         prod(synco);
         while (filter.getToken().kind == Token.Type.POP) {
             filter.matchToken();
@@ -278,15 +273,17 @@ public class Parser {
     }
     // prod = { atom { ("*"|"/"|"%") atom } }
     // sync:         ^ "*" ...
-    void prod(Set<Token.Type> synco) throws IOException, ParserError {
+    void prod(Set<Token.Type> synco) {
         Set<Token.Type> sync =  new HashSet<>(synco);
         sync.add(Token.Type.LOP);
-        try {
-            atom(sync);
-        } catch (ParserError error) {
+        
+        // try {
+        atom(sync);
+        /* } catch (ParserError error) {
             if (filter.getToken().kind == Token.Type.LOP) ;
             else throw error;
-        }
+        } */
+        
         while (filter.getToken().kind == Token.Type.LOP) {
             filter.matchToken();
             atom(synco);
@@ -295,7 +292,7 @@ public class Parser {
 
     // atom = DOUBLE | INT | IDENTIFIER | ("+"|"-") atom | "(" expr ")"
     // no syncs
-    void atom(Set<Token.Type> synco) throws IOException, ParserError {
+    void atom(Set<Token.Type> synco) {
         if (filter.getToken().kind == Token.Type.DOUBLE) {
             filter.matchToken();
         }
@@ -320,7 +317,7 @@ public class Parser {
             errors.add(error);
             // panic !!!
             while (!synco.contains(filter.getToken().kind)) filter.matchToken();
-            throw error;
+            // throw error;
         }
     }
 }

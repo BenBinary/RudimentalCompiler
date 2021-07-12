@@ -29,11 +29,11 @@ public class Filter {
         this.errors = errors;
     }
     
-    void fillBuffer(int n) throws IOException {
+    void fillBuffer(int n)  {
         for (int i=0; i<n;i++) tokenlist.add(getNextFilteredToken());
     }
 
-    Token getNextFilteredToken() throws IOException {
+    Token getNextFilteredToken()  {
         Token erg;
         do {
             erg = lexer.getNextToken();
@@ -44,7 +44,11 @@ public class Filter {
                 column = 1;
             }
             else column += erg.content.length();
-            if (erg.kind == Token.Type.ERROR) errors.add(new LexerError(erg, "Unknown token "+erg.content));
+            
+            if (erg.kind == Token.Type.ERROR) 
+            	
+            	errors.add(new LexerError(erg, "Unknown token "+erg.content));
+            
         } while (erg.kind == Token.Type.WS || erg.kind==Token.Type.ERROR);
         
         if (erg.kind == Token.Type.IDENTIFIER) {
@@ -64,12 +68,12 @@ public class Filter {
         return erg;
     }
 
-    public Token getToken(int i) throws IOException {
+    public Token getToken(int i) {
         fillBuffer(current+i+1 - tokenlist.size());
         return tokenlist.get(current+i);
     }
     
-    public Token getToken() throws IOException {
+    public Token getToken() {
         return getToken(0);
     }
     
@@ -77,14 +81,14 @@ public class Filter {
         current++;
     }
     
-    public void matchToken(Token.Type type, Set<Token.Type> sync) throws IOException, ParserError {
+    public void matchToken(Token.Type type, Set<Token.Type> sync) {
         if (getToken().kind == type) matchToken();
         else {
             Token currentToken = getToken();
             ParserError error = new ParserError(currentToken, type+" expected instead of "+currentToken.kind);
             errors.add(error);
             while (!sync.contains(getToken().kind)) matchToken();
-            throw error;
+            // throw error;
         }
     }
 }

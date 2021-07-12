@@ -39,7 +39,7 @@ public class Lexer {
         return false;
     }
 
-    public Token getNextToken() throws IOException {
+    public Token getNextToken()  {
         marked = -1;
         int state = 0;
         Token t = new Token();
@@ -116,10 +116,16 @@ public class Lexer {
     }
 
     // input side
-    public int getNextChar() throws IOException {
+    public int getNextChar()  {
        if (current>=buffer.size())
            if (ended) return -1;
-           else buffer.add(input.read());
+		else
+			try {
+				buffer.add(input.read());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
        return buffer.get(current++);
     }
