@@ -83,6 +83,9 @@ public class Filter {
             Token currentToken = getToken();
             ParserError error = new ParserError(currentToken, type+" expected instead of "+currentToken.kind);
             errors.add(error);
+            
+            // So lange bis ein Synchronisierungszeichen gefunden wurde 
+            // und dann wird matchToken() aufgerufen  
             while (!sync.contains(getToken().kind)) matchToken();
             throw error;
         }

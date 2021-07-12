@@ -17,6 +17,8 @@ public class Parser {
     // compilationUnit = { decl | stmnt } EOF
     // sync part of First(decl) + First(stmnt) + EOF
     void compilationUnit() throws IOException, ParserError {
+    	
+    	// Tokentypen definieren
         Set<Token.Type> sync =  new HashSet<>();
         sync.add(Token.Type.EOF);
         sync.add(Token.Type.KEYDOUBLE);
@@ -53,14 +55,19 @@ public class Parser {
             filter.matchToken(Token.Type.SEM, sync);
         } catch (ParserError error) {
             if (filter.getToken().kind == Token.Type.SEM) {
+            	// hier ist man am Ende einer Deklaration 
                 filter.matchToken();
                 return;
             }
+            // falls nicht, gebe ich es an das nächst höhere weiter
             else throw error;
         }
     }
     // type = "double" | "int" -- we already know it is int or double !
     void type() throws IOException, ParserError {
+    	
+    	// Synchronisierunszeichen 
+    	
         filter.matchToken();
     }
 
@@ -100,6 +107,8 @@ public class Parser {
     // ifStmnt = "if" "(" expr ")" stmnt [ "else" stmnt ]
     // sync:                    ^ else, First(stmnt)
     void ifStmnt(Set<Token.Type> synco) throws IOException, ParserError {
+    	
+    	// Eigene Synchronisierungszeichen
         Set<Token.Type> sync = new HashSet<>(synco);
         sync.add(Token.Type.ELSE);
         sync.add(Token.Type.IF);
@@ -126,10 +135,12 @@ public class Parser {
             try {
                 stmnt(sync);
             } catch (ParserError error) {
+            	// Wenn das aktuelle Token ein ELSE ist
                 if (filter.getToken().kind == Token.Type.ELSE) ;
                 else throw error;
             }
         }
+    	// Wenn das aktuelle Token ein ELSE ist
         if (filter.getToken().kind == Token.Type.ELSE) {
             filter.matchToken();
             stmnt(synco);

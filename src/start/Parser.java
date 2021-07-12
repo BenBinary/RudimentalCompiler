@@ -164,7 +164,8 @@ public class Parser {
     // exprStmnt = expr ";"
     // sync: ";"
     void exprStmnt(Set<Token.Type> synco) throws IOException, ParserError {
-        Set<Token.Type> sync = new HashSet<>(synco);
+        
+    	Set<Token.Type> sync = new HashSet<>(synco);
         sync.add(Token.Type.SEM);
 
         try {
