@@ -59,6 +59,8 @@ public class Parser {
 
     // compilationUnit = { decl | stmnt } EOF
     // sync part of First(decl) + First(stmnt) + EOF
+    
+    // Betrachten als Wurzelknoten
     void compilationUnit() throws IOException, ParserError {
     	
     	// Tokentypen definieren
@@ -85,13 +87,14 @@ public class Parser {
     }
 
     // decl = type IDENTIFIER SEM
-    // sync: SEM
+    // sync: SEM 
     void decl(Set<Token.Type> synco) throws IOException, ParserError {
     	
         Set<Token.Type> sync = new HashSet<>(synco);
         
         sync.add(Token.Type.SEM);
 
+        // Herausfinden ob es ein Double oder ein int ist
         type();
         try {
             filter.matchToken(Token.Type.IDENTIFIER, sync);
@@ -114,9 +117,18 @@ public class Parser {
         filter.matchToken();
     }
 
-    // stmnt = ifStmnt | whileStmnt | exprStmnt | emptyStmnt | block
-    //         | printStmnt
-    // no syncs
+
+    /**
+     * stmnt = ifStmnt | whileStmnt | exprStmnt | emptyStmnt | block  | printStmnt
+     * no syncs
+     * 
+     * Sammelknoten für die Grammatik 
+     * Man arbeitet normalerweise nicht mit weiteren Kindknoten wie etwa für While-Statements
+     * 
+     * @param synco
+     * @throws IOException
+     * @throws ParserError
+     */
     void stmnt(Set<Token.Type> synco) throws IOException, ParserError {
     	
        Token.Type kind = filter.getToken().kind;

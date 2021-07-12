@@ -1,15 +1,15 @@
 double x;
-double y
+double y;
 
 int z;
 x * y;
-4=5;
+p=5;
 
 if (x<5) {
   int l;
   3;
-  print l
+  print l;
 }
 else {
-  x = 5 = 7;
+  x = m = 7;
 }
