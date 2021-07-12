@@ -61,7 +61,13 @@ public class Parser {
     // sync part of First(decl) + First(stmnt) + EOF
     
     // Betrachten als Wurzelknoten
-    void compilationUnit() throws IOException, ParserError {
+    /**
+     * 
+     * @return
+     * @throws IOException
+     * @throws ParserError
+     */
+    CUNode compilationUnit() throws IOException, ParserError {
     	
     	// Tokentypen definieren
         Set<Token.Type> sync =  new HashSet<>();
@@ -73,48 +79,85 @@ public class Parser {
         sync.add(Token.Type.PRINT);
         sync.add(Token.Type.SEM);
         sync.add(Token.Type.BLOCKSTART);
+        
+        CUNode result = new CUNode();
 
         while (filter.getToken().kind != Token.Type.EOF) {
             try {
                 if (filter.getToken().kind == Token.Type.KEYDOUBLE
                         || filter.getToken().kind == Token.Type.KEYINT)
-                    decl(sync);
-                else stmnt(sync);
+                    result.add(decl(sync));
+                else result.add(stmnt(sync));;
             } catch (ParserError error) {
                 // nothing to be done -- just proceed with decl, stmnt or EOF
             }
         }
+        
+        return result; 
     }
 
     // decl = type IDENTIFIER SEM
     // sync: SEM 
-    void decl(Set<Token.Type> synco) throws IOException, ParserError {
+    /**
+     * 
+     * Sofern es sich um eine Deklaration handelt.
+     * Dann wird ein DeclNode gebaut und zurückgegeben.
+     * 
+     * @param synco
+     * @return
+     * @throws IOException
+     * @throws ParserError
+     */
+    DeclNode decl(Set<Token.Type> synco) throws IOException, ParserError {
     	
         Set<Token.Type> sync = new HashSet<>(synco);
         
         sync.add(Token.Type.SEM);
 
         // Herausfinden ob es ein Double oder ein int ist
-        type();
+        Token typ = type();
+        Token name = null;
+        Token end = null;
+        
         try {
+        	
+        	name= filter.getToken();
             filter.matchToken(Token.Type.IDENTIFIER, sync);
             filter.matchToken(Token.Type.SEM, sync);
+            typ = filter.getToken();
+            
         } catch (ParserError error) {
+        	
             if (filter.getToken().kind == Token.Type.SEM) {
             	// hier ist man am Ende einer Deklaration 
                 filter.matchToken();
-                return;
+                return new DeclNode(end, typ, name);
             }
+            
             // falls nicht, gebe ich es an das nächst höhere weiter
             else throw error;
         }
+        
+        return new DeclNode(end, typ, name);
     }
-    // type = "double" | "int" -- we already know it is int or double !
-    void type() throws IOException, ParserError {
+    
+    
+    
+    /**
+     * type = "double" | "int" -- we already know it is int or double !
+     * 
+     * @return
+     * @throws IOException
+     * @throws ParserError
+     */
+    Token type() throws IOException, ParserError {
     	
+    	
+    	Token res = filter.getToken();
     	// Synchronisierunszeichen 
-    	
         filter.matchToken();
+        
+		return res;
     }
 
 
