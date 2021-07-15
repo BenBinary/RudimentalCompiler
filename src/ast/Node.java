@@ -75,7 +75,6 @@ class IfNode extends StmntNode {
 		this.stmntNode = stmnt;
 		this.elseStmnt = elseStmnt;
 		
-		
 	}
 	
 }
@@ -101,6 +100,13 @@ class WhileNode extends StmntNode {
 	
 }
 
+/**
+ * 
+ * 
+ * 
+ * @author benediktkurz
+ *
+ */
 class ExprNode extends StmntNode {
 	
 	ExprNode expr;
@@ -113,9 +119,45 @@ class ExprNode extends StmntNode {
 		
 	}
 	
+}
+
+/**
+ */
+class BlockNode extends StmntNode {
 	
+	BlockNode block;
 	
+	public BlockNode(Token start, Token end) {
+		
+		super(start, end);
+		
+		
+	}
 	
+}
+
+
+class PrintNode extends StmntNode {
+	
+	// BlockNode block;
+	
+	public PrintNode(Token start, Token end) {
+		
+		super(start, end);
+		
+		
+	}
+	
+}
+
+
+class EmptyStmntNode extends StmntNode {
+	
+	public EmptyStmntNode(Token token) {
+		// TODO Auto-generated constructor stub
+		
+		super(token, token);
+	}
 	
 }
 
