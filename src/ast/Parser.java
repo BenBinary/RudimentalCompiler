@@ -130,7 +130,8 @@ public class Parser {
 			if (filter.getToken().kind == Token.Type.SEM) {
 				// hier ist man am Ende einer Deklaration
 				filter.matchToken();
-				return new DeclNode(end, typ, name);
+				end = filter.getToken();
+				//return new DeclNode(end, typ, name);
 			}
 
 			// falls nicht, gebe ich es an das nächst höhere weiter
@@ -202,8 +203,10 @@ public class Parser {
 	PrintNode printStmnt(Set<Token.Type> synco) throws IOException, ParserError {
 		
 		PrintNode res = null;
-		Set<Token.Type> sync = new HashSet<>(synco);
 		Token startToken = filter.getToken();
+		// StmntNode stmntNode = null;
+		
+		Set<Token.Type> sync = new HashSet<>(synco);
 		
 		sync.add(Token.Type.SEM);
 
@@ -256,7 +259,7 @@ public class Parser {
 		toElse: {
 			try {
 				filter.matchToken(Token.Type.BR, sync); // Klammer auf
-				stmnt = expr(sync);
+				expr = expr(sync);
 				filter.matchToken(Token.Type.BRC, sync); // Klammer zu
 			} catch (ParserError error) {
 				if (filter.getToken().kind == Token.Type.ELSE)
@@ -309,6 +312,7 @@ public class Parser {
 		Node expr = null;
 		StmntNode stmnt = null;
 		Token start = filter.getToken();
+		
 		filter.matchToken(); // must be "while"
 
 		try {
@@ -331,7 +335,7 @@ public class Parser {
 
 	// exprStmnt = expr ";"
 	// sync: ";"
-	ExprNode exprStmnt(Set<Token.Type> synco) throws IOException, ParserError {
+	ExprStmntNode exprStmnt(Set<Token.Type> synco) throws IOException, ParserError {
 		Set<Token.Type> sync = new HashSet<>(synco);
 		sync.add(Token.Type.SEM);
 
@@ -349,7 +353,7 @@ public class Parser {
 				throw error;
 		}
 
-		return new ExprNode(expr, end);
+		return new ExprStmntNode(expr, end);
 	}
 
 	// emptyStmnt = ";" -- see above stmnt
@@ -359,7 +363,7 @@ public class Parser {
 	BlockNode block(Set<Token.Type> synco) throws IOException, ParserError {
 
 		Set<Token.Type> sync = new HashSet<>();
-		BlockNode blockNode = null;
+		BlockNode res = null;
 		Token start = null;
 
 		sync.add(Token.Type.BLOCKEND);
@@ -379,14 +383,17 @@ public class Parser {
 			try {
 
 				if (filter.getToken().kind == Token.Type.KEYDOUBLE || filter.getToken().kind == Token.Type.KEYINT)
+					
+					// TODO: Add sth for declaration
 					decl(sync);
+				
 				else
-					stmnt(sync);
+					res = new BlockNode(stmnt(sync));
 
 			} catch (ParserError error) {
 
 				if (filter.getToken().kind == Token.Type.BLOCKEND) {
-					blockNode = new BlockNode(start, filter.getToken());
+					
 					break toBlockend;
 					
 				}	
@@ -412,16 +419,17 @@ public class Parser {
 				throw error;
 		}
 		
-		return blockNode;
+		return res;
 
 	}
 
 	// expr = IDENTIFIER "=" expr | comp
 	// sync: ^ "="
-	void expr(Set<Token.Type> synco) throws IOException, ParserError {
+	ExprNode expr(Set<Token.Type> synco) throws IOException, ParserError {
 
 		Set<Token.Type> sync = new HashSet<>();
 		sync.add(Token.Type.SETTO);
+		ExprNode exprNode = null;
 
 		if (filter.getToken(1).kind == Token.Type.SETTO) {
 
@@ -436,19 +444,31 @@ public class Parser {
 
 			filter.matchToken();
 
-			expr(synco);
+			exprNode = new ExprNode(expr(synco));
+			
 		} else
 			comp(synco);
+		
+		
+		return exprNode;
+		
 	}
 
 	// comp = sum "<" sum | sum
 	// sync: ^ "<"
 	void comp(Set<Token.Type> synco) throws IOException, ParserError {
+		
 		Set<Token.Type> sync = new HashSet<>(synco);
 		sync.add(Token.Type.COMP);
+		
+		Token start = null;
+		Token end = null;
+		
 
 		try {
+			
 			sum(sync);
+			
 		} catch (ParserError error) {
 			if (filter.getToken().kind == Token.Type.COMP)
 				;
@@ -459,6 +479,8 @@ public class Parser {
 			filter.matchToken();
 			sum(synco);
 		}
+		
+		
 	}
 
 	// sum = { prod { ("+"|"-") prod } }
@@ -514,6 +536,9 @@ public class Parser {
 	// atom = DOUBLE | INT | IDENTIFIER | ("+"|"-") atom | "(" expr ")"
 	// no syncs
 	void atom(Set<Token.Type> synco) throws IOException, ParserError {
+		
+		
+		
 		if (filter.getToken().kind == Token.Type.DOUBLE) {
 			filter.matchToken();
 		} else if (filter.getToken().kind == Token.Type.INT) {

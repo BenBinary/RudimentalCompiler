@@ -58,12 +58,17 @@ class StmntNode extends Node {
  * 
  * Is checking if the if-Statement has an else-Clause
  * 
+ * if (expr) { stmntNode } else { elseStmnt }
+ * 
+ * Kann man statt der stmnt auch Blocks nehmen?
+ * 
+ * 
  * @author benediktkurz
  *
  */
 class IfNode extends StmntNode {
 	
-	Node expr;
+	Node expr; 
 	StmntNode stmntNode;
 	StmntNode elseStmnt;
 
@@ -82,7 +87,11 @@ class IfNode extends StmntNode {
 /**
  * 
  * @author benediktkurz
- *
+ * 
+ * 
+ * while (expr) { stmnt }
+ * 
+ * 
  */
 class WhileNode extends StmntNode {
 	
@@ -101,18 +110,17 @@ class WhileNode extends StmntNode {
 }
 
 /**
- * 
+ * Done
  * 
  * 
  * @author benediktkurz
  *
  */
-class ExprNode extends StmntNode {
+class ExprStmntNode extends StmntNode {
 	
 	ExprNode expr;
 	
-	
-	public ExprNode(ExprNode expr, Token end) {
+	public ExprStmntNode(ExprNode expr, Token end) {
 		
 		super(expr.start, end);
 		this.expr = expr;
@@ -122,18 +130,22 @@ class ExprNode extends StmntNode {
 }
 
 /**
+ * 
+ * Brauche ich hier weitere Informationen? 
+ * Es müsste ja reichen, den Anfang und das Ende des Knoten zu kennen.
+ * 
+ * Anfang vor oder nach den Klammern - gleiche Frage auch für das Ende?
+ * 
  */
 class BlockNode extends StmntNode {
 	
-	BlockNode block;
+	StmntNode block;
 	
-	public BlockNode(Token start, Token end) {
+	public BlockNode(StmntNode stmntNode) {
 		
-		super(start, end);
-		
-		
-	}
-	
+		super(stmntNode.start, stmntNode.end);
+			
+	}	
 }
 
 
@@ -144,7 +156,6 @@ class PrintNode extends StmntNode {
 	public PrintNode(Token start, Token end) {
 		
 		super(start, end);
-		
 		
 	}
 	
@@ -171,6 +182,7 @@ class EmptyStmntNode extends StmntNode {
  */
 class CUNode extends Node {
 	
+	// Alle Deklarationen und Statements
 	List<Node> declAndStmtns = new LinkedList<Node>();
 	
 	public CUNode() {
@@ -180,7 +192,7 @@ class CUNode extends Node {
 		
 	}	
 	
-	private void add(Node node) {
+	public void add(Node node) {
 		
 		this.declAndStmtns.add(node);
 		
@@ -209,9 +221,65 @@ class DeclNode extends Node {
 		super(typ, end);
 		this.typ = typ;
 		this.name = name;
+		
+		
+		
+		
 	}
 	
+}
+
+
+class ExprNode extends Node {
+	
+	public ExprNode(Node node) {
+		
+		super(node.start, node.end);
+	
+	}
+	
+}
+
+/**
+ * 
+ * Braucht der CompNode Unterknoten von Sum?
+ * 
+ * @author benediktkurz
+ *
+ */
+class CompNode extends Node {
+	
+		
+	
+}
+
+class SumNode extends Node {
+	
+}
+
+class ProdNode extends Node {
 	
 	
+}
+
+/**
+ * 
+ * Tokens können Strings allgemeiner Art sein.
+ * 
+ * @author benediktkurz
+ *
+ */
+class AtomNode extends Node {
+	
+	Token start;
+	Token end;
+	
+	public AtomNode(Token start, Token end) {
+		
+		super(start, end);
+		this.start = start;
+		this.end = end;
+		
+	}
 	
 }
