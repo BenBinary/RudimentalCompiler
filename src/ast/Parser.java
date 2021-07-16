@@ -188,6 +188,7 @@ public class Parser {
 			res = printStmnt(synco);
 		else if (kind == Token.Type.SEM) {
 
+			// hierbei wird nur das semicolon übergeben.
 			res = new EmptyStmntNode(filter.getToken());
 			filter.matchToken();
 
@@ -336,6 +337,7 @@ public class Parser {
 	// exprStmnt = expr ";"
 	// sync: ";"
 	ExprStmntNode exprStmnt(Set<Token.Type> synco) throws IOException, ParserError {
+		
 		Set<Token.Type> sync = new HashSet<>(synco);
 		sync.add(Token.Type.SEM);
 
@@ -344,7 +346,7 @@ public class Parser {
 
 		try {
 			expr = expr(sync);
-			end = filter.getToken();
+			
 			filter.matchToken(Token.Type.SEM, sync);
 		} catch (ParserError error) {
 			if (filter.getToken().kind == Token.Type.SEM)
@@ -352,6 +354,8 @@ public class Parser {
 			else
 				throw error;
 		}
+		
+		end = filter.getToken();
 
 		return new ExprStmntNode(expr, end);
 	}
@@ -456,18 +460,23 @@ public class Parser {
 
 	// comp = sum "<" sum | sum
 	// sync: ^ "<"
-	void comp(Set<Token.Type> synco) throws IOException, ParserError {
+	CompNode comp(Set<Token.Type> synco) throws IOException, ParserError {
 		
 		Set<Token.Type> sync = new HashSet<>(synco);
 		sync.add(Token.Type.COMP);
 		
+		CompNode compNode = null;
 		Token start = null;
 		Token end = null;
+		Token compToken = null;
+		SumNode leftSumNode = null;
+		SumNode rightSumNode = null; 
 		
+		start = filter.getToken();
 
 		try {
 			
-			sum(sync);
+			leftSumNode = sum(sync);
 			
 		} catch (ParserError error) {
 			if (filter.getToken().kind == Token.Type.COMP)
@@ -476,10 +485,17 @@ public class Parser {
 				throw error;
 		}
 		if (filter.getToken().kind == Token.Type.COMP) {
+			
+			compToken = filter.getToken();
 			filter.matchToken();
-			sum(synco);
+			rightSumNode = sum(synco);
 		}
 		
+		end = filter.getToken();
+		
+		compNode = new CompNode(start, end, rightSumNode, leftSumNode, compToken);
+		
+		return compNode;
 		
 	}
 
@@ -506,21 +522,52 @@ public class Parser {
 	 * @throws IOException
 	 * @throws ParserError
 	 */
-	void sum(Set<Token.Type> synco) throws IOException, ParserError {
-		prod(synco);
+	SumNode sum(Set<Token.Type> synco) throws IOException, ParserError {
+		
+		ProdNode leftProdNode = null;
+		ProdNode rightProdNode = null;
+		Token start = null;
+		Token end = null;
+		SumNode sumNode = null;
+		
+		start = filter.getToken();
+		leftProdNode = prod(synco);
+		
 		while (filter.getToken().kind == Token.Type.POP) {
 			filter.matchToken();
-			prod(synco);
+			rightProdNode = prod(synco);
 		}
+		
+		end = filter.getToken();
+		sumNode = new SumNode(start, end, leftProdNode, rightProdNode);  
+		
+		return sumNode;
+		
 	}
-
-	// prod = { atom { ("*"|"/"|"%") atom } }
-	// sync: ^ "*" ...
-	void prod(Set<Token.Type> synco) throws IOException, ParserError {
+	
+	
+	/**
+	 * ist ein Teilausdruck.
+	 * 
+	 * prod = { atom { ("*"|"/"|"%") atom } }
+	 * sync:^ "*" ...
+	 * 
+	 * @param synco
+	 * @throws IOException
+	 * @throws ParserError
+	 */
+	ProdNode prod(Set<Token.Type> synco) throws IOException, ParserError {
+		
 		Set<Token.Type> sync = new HashSet<>(synco);
 		sync.add(Token.Type.LOP);
+		ProdNode prodNode = null;
+		Token start = null;
+		Token end = null;
+		AtomNode leftAtomNode = null;
+		AtomNode rightAtomNode = null;
+		
 		try {
-			atom(sync);
+			leftAtomNode = atom(sync);
 		} catch (ParserError error) {
 			if (filter.getToken().kind == Token.Type.LOP)
 				;
@@ -529,26 +576,40 @@ public class Parser {
 		}
 		while (filter.getToken().kind == Token.Type.LOP) {
 			filter.matchToken();
-			atom(synco);
+			rightAtomNode = atom(synco);
 		}
+		
+		prodNode = new ProdNode(start, end, leftAtomNode, rightAtomNode);
+		
+		return prodNode;
+		
 	}
 
 	// atom = DOUBLE | INT | IDENTIFIER | ("+"|"-") atom | "(" expr ")"
 	// no syncs
-	void atom(Set<Token.Type> synco) throws IOException, ParserError {
+	AtomNode atom(Set<Token.Type> synco) throws IOException, ParserError {
+		
+		AtomNode atomNode = null;
+		Token typ = null;
+		Token start = filter.getToken();
+		Token end = null;
 		
 		
-		
-		if (filter.getToken().kind == Token.Type.DOUBLE) {
+		if (filter.getToken().kind ==  Token.Type.DOUBLE) {
+			typ = type();
 			filter.matchToken();
 		} else if (filter.getToken().kind == Token.Type.INT) {
+			typ = type();
 			filter.matchToken();
 		} else if (filter.getToken().kind == Token.Type.IDENTIFIER) {
+			typ = type();
 			filter.matchToken();
 		} else if (filter.getToken().kind == Token.Type.POP) {
+			typ = type();
 			filter.matchToken();
 			atom(synco);
 		} else if (filter.getToken().kind == Token.Type.BR) {
+			typ = type();
 			filter.matchToken();
 			expr(synco);
 			filter.matchToken(Token.Type.BRC, synco);
@@ -561,5 +622,9 @@ public class Parser {
 				filter.matchToken();
 			throw error;
 		}
+		
+		end = filter.getToken();
+		atomNode = new AtomNode(typ, start, end);
+		return atomNode;
 	}
 }

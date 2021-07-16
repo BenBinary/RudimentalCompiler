@@ -249,15 +249,48 @@ class ExprNode extends Node {
  */
 class CompNode extends Node {
 	
-		
+	SumNode rightSumNode;
+	SumNode leftSumNode;
+	// Token start;
+	// Token end;
+	Token compToken;
+	
+
+	public CompNode(Token start, Token end, SumNode rightSumNode, SumNode leftSumNode, Token compToken) {
+		super(start, end);
+		this.rightSumNode = rightSumNode;
+		this.leftSumNode = leftSumNode;
+		this.compToken = compToken;
+	}	
 	
 }
 
 class SumNode extends Node {
 	
+	ProdNode leftProdNode;
+	ProdNode rightProdNode;
+	
+	public SumNode(Token start, Token end, ProdNode leftProdNode, ProdNode rightProdNode) {
+		super(start, end);
+		this.leftProdNode = leftProdNode;
+		this.rightProdNode = rightProdNode;
+	}
+
+
+	
+	
 }
 
 class ProdNode extends Node {
+	
+	AtomNode leftAtomNode;
+	AtomNode rightAtomNode;
+	
+	public ProdNode(Token start, Token end, AtomNode leftAtomNode, AtomNode rightAtomNode) {
+		super(start, end);
+		this.leftAtomNode = leftAtomNode;
+		this.rightAtomNode = rightAtomNode;
+	}
 	
 	
 }
@@ -271,10 +304,11 @@ class ProdNode extends Node {
  */
 class AtomNode extends Node {
 	
+	Token typ;
 	Token start;
 	Token end;
 	
-	public AtomNode(Token start, Token end) {
+	public AtomNode(Token typ, Token start, Token end) {
 		
 		super(start, end);
 		this.start = start;
